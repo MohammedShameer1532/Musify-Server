@@ -100,7 +100,8 @@ passport.deserializeUser(async (id, done) => {
 app.get("/auth/google/callback", passport.authenticate("google", {
     failureRedirect: "http://localhost:5173",
 }), (req, res) => {
-    console.log("OAuth Callback User:", req.user);
+    console.log("OAuth Callback User:", req.user);  
+    console.log("Session in OAuth callback:", req.session);  
     res.redirect("http://localhost:5173/home");
 });
 
