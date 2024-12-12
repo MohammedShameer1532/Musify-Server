@@ -51,7 +51,7 @@ passport.use(
     new oAuth2Strategy({
         clientID: ClientId,
         clientSecret: ClientSecret,
-        callbackURL: "https://musify-server-phi.vercel.app/auth/google/callback",
+        callbackURL: "http://localhost:5000/auth/google/callback",
         scope: ["profile", "email"]
     }, async (accessToken, refreshToken, profile, done) => {
         try {
@@ -83,10 +83,10 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-    console.log("Deserializing User ID:", id);  // Log the ID
+    console.log("Deserializing User ID:", id);  
     try {
         const user = await userDb.findById(id);
-        console.log("Deserialized User:", user);  // Log the deserialized user
+        console.log("Deserialized User:", user); 
         done(null, user);
     } catch (err) {
         console.error("Error in deserializing user:", err);
@@ -134,20 +134,20 @@ app.post('/signup', async (req, res) => {
 //Traditional Login
 app.post('/login', async (req, res) => {
     console.log('Request login:', req.body);
+    console.log('Request Headers:', req.headers);
     const { email, password } = req.body;
     try {
         const user = await userDb.findOne({ email })
         if (!user || user.password !== password) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
-
         req.login(user, (err) => {
             console.log("Session after login:", req.session);
             if (err) return res.status(500).json({ message: "Login failed" });
             res.cookie("sessionSecret", "dfhdshdfjklas12323kdf7789", {
-                httpOnly: true, // Ensures the cookie is not accessible via JavaScript (to mitigate XSS)
-                secure: false,  // Set to true if using HTTPS in production
-                maxAge: 24 * 60 * 60 * 1000, // Cookie expiration time (e.g., 1 day)
+                httpOnly: true, 
+                secure: false,  
+                maxAge: 24 * 60 * 60 * 1000, 
             });
             return res.status(200).json({ message: "Login successful", user });
         });
