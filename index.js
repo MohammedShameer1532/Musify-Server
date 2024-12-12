@@ -43,6 +43,11 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Session ID:', req.sessionID);
+    next();
+});
 
 
 passport.use(
