@@ -162,7 +162,7 @@ app.get('/logout', (req, res, next) => {
     })
 })
 
-app.get('/login/success', (req, res) => {
+app.get('/login/success', (req, res,next) => {
     console.log("Session Data:", req.session);
     console.log("User Data:", req.user);
     if (req.user) {
@@ -170,6 +170,7 @@ app.get('/login/success', (req, res) => {
     } else {
         res.status(401).json({ message: "Not Authorized" });
     }
+    next();
 });
 
 app.get('/', (req, res) => {
