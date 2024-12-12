@@ -51,7 +51,7 @@ passport.use(
     new oAuth2Strategy({
         clientID: ClientId,
         clientSecret: ClientSecret,
-        callbackURL: "https://musify-server-k3et.onrender.com/auth/google/callback",
+        callbackURL: "https://musify-server-phi.vercel.app/auth/google/callback",
         scope: ["profile", "email"]
     }, async (accessToken, refreshToken, profile, done) => {
         try {
