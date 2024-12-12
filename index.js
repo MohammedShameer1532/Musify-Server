@@ -50,7 +50,7 @@ passport.use(
     new oAuth2Strategy({
         clientID: ClientId,
         clientSecret: ClientSecret,
-        callbackURL: "http://localhost:5000/auth/google/callback",
+        callbackURL: "https://musify-server-k3et.onrender.com/auth/google/callback",
         scope: ["profile", "email"]
     }, async (accessToken, refreshToken, profile, done) => {
         try {
