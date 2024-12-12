@@ -142,6 +142,7 @@ app.post('/login', async (req, res) => {
         }
 
         req.login(user, (err) => {
+            console.log("Session after login:", req.session);
             if (err) return res.status(500).json({ message: "Login failed" });
             res.cookie("sessionSecret", "dfhdshdfjklas12323kdf7789", {
                 httpOnly: true, // Ensures the cookie is not accessible via JavaScript (to mitigate XSS)
