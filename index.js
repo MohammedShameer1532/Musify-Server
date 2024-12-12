@@ -65,8 +65,10 @@ passport.use(
                 });
                 await user.save();
             }
+            console.log("User found/created:", user);  
             return done(null, user)
         } catch (error) {
+            console.error("Error in OAuth callback:", error);
             return done(error, null)
         }
     })
