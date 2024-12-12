@@ -44,18 +44,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    console.log('Session ID:', req.sessionID);
-    next();
-});
 
 
 passport.use(
     new oAuth2Strategy({
         clientID: ClientId,
         clientSecret: ClientSecret,
-        callbackURL: "https://musify-server-bay.vercel.app/auth/google/callback",
+        callbackURL: "http://localhost:5000/auth/google/callback",
         scope: ["profile", "email"]
     }, async (accessToken, refreshToken, profile, done) => {
         try {
@@ -98,13 +93,11 @@ passport.deserializeUser(async (id, done) => {
 
 
 // initial google ouath login
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173",
-}), (req, res) => {
-    console.log("OAuth Callback User:", req.user);  
-    console.log("Session in OAuth callback:", req.session);  
-    res.redirect("http://localhost:5173/home");
-});
+    successRedirect: "http://localhost:5173/home",
+    failureRedirect: "http://localhost:5173"
+}))
 
 
 //Traditional Signup
