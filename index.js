@@ -35,7 +35,7 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24,
         secure: process.env.NODE_ENV === 'production', // set to true for production (HTTPS)
-        sameSite: 'None', // Allow cross-origin requests
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // Allow cross-origin requests
     },
 }))
 
