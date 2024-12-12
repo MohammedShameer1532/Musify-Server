@@ -86,8 +86,10 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await userDb.findById(id);
+        console.log("Deserialized User:", user);
         done(null, user);
     } catch (err) {
+        console.error("Error in deserializing user:", err);
         done(err, null);
     }
 });
@@ -95,11 +97,12 @@ passport.deserializeUser(async (id, done) => {
 
 
 // initial google ouath login
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
-    successRedirect: "http://localhost:5173/home",
-    failureRedirect: "http://localhost:5173"
-}))
+    failureRedirect: "http://localhost:5173",
+}), (req, res) => {
+    console.log("OAuth Callback User:", req.user);
+    res.redirect("http://localhost:5173/home");
+});
 
 
 //Traditional Signup
@@ -160,12 +163,14 @@ app.get('/logout', (req, res, next) => {
 })
 
 app.get('/login/success', (req, res) => {
-    console.log('Session on login success:', req.session);
-    if (req.user) {
-        res.status(200).json({ message: "User successfully logged in", user: req.user });
-    } else {
-        res.status(401).json({ message: "Not Authorized" });
-    }
+    console.log("Session Data:", req.session);
+    console.log("User Data:", req.user);
+    next();
+    // if (req.user) {
+    //     res.status(200).json({ message: "User successfully logged in", user: req.user });
+    // } else {
+    //     res.status(401).json({ message: "Not Authorized" });
+    // }
 });
 
 app.get('/', (req, res) => {
