@@ -30,15 +30,16 @@ app.use(cookieParser());
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI, collectionName: "session" }),
     cookie: {
-        httpOnly: true, 
-        maxAge: 1000 * 60 * 60 * 24,
-        secure: process.env.NODE_ENV === 'production', 
-        sameSite: 'None'
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'None', 
     },
-}))
+}));
+
 
 // Initialize Passport and restore authentication state from the session
 app.use(passport.initialize());
@@ -77,18 +78,22 @@ passport.use(
 
 
 passport.serializeUser((user, done) => {
-    done(null, user.id)
-})
+    console.log("Serialized User:", user);  // Log the user
+    done(null, user.id);  // Ensure it's saving the correct user ID
+});
+
 passport.deserializeUser(async (id, done) => {
+    console.log("Deserializing User ID:", id);  // Log the ID
     try {
         const user = await userDb.findById(id);
-        console.log("Deserialized User:", user);
+        console.log("Deserialized User:", user);  // Log the deserialized user
         done(null, user);
     } catch (err) {
         console.error("Error in deserializing user:", err);
         done(err, null);
     }
 });
+
 
 
 
