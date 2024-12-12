@@ -155,6 +155,7 @@ app.get('/logout', (req, res, next) => {
 })
 
 app.get('/login/success', (req, res) => {
+    console.log('Session on login success:', req.session);
     if (req.user) {
         res.status(200).json({ message: "User successfully logged in", user: req.user });
     } else {
