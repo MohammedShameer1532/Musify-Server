@@ -35,8 +35,8 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
-    sameSite: 'Lax',
-    secure: true,
+    sameSite: 'None',
+    secure: process.env.NODE_ENV === 'production',
   },
 
 }));
@@ -164,6 +164,11 @@ app.get('/login/success', (req, res, next) => {
   } else {
     res.status(401).json({ message: "Not Authorized" });
   }
+  next();
+});
+
+app.use((req, res, next) => {
+  console.log("Session Middleware:", req.session);
   next();
 });
 
