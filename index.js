@@ -98,19 +98,12 @@ passport.deserializeUser(async (id, done) => {
 
 // initial google ouath login
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-app.get("/auth/google/callback", passport.authenticate("google", {
+app.get("/auth/google/callback", passport.authenticate("google", { session: true } ,{
   successRedirect: "https://musify-client-eta.vercel.app/home",
   failureRedirect: "https://musify-client-eta.vercel.app"
 }))
 
-app.get("/auth/google/callback", 
-  passport.authenticate("google", { session: true }),
-  (req, res) => {
-    req.session.save(() => {
-      res.redirect("https://musify-client-eta.vercel.app/home");
-    });
-  }
-);
+
 
 
 
@@ -169,9 +162,6 @@ app.get('/logout', (req, res, next) => {
 
 
 app.get('/login/success', (req, res) => {
-  console.log('Session at login/success:', req.session);
-  console.log('Auth Status:', req.isAuthenticated());
-  
   if (req.isAuthenticated() && req.user) {
     res.status(200).json({
       success: true,
@@ -180,21 +170,48 @@ app.get('/login/success', (req, res) => {
       sessionID: req.sessionID
     });
   } else {
-    res.status(401).json({
-      success: false,
-      message: "Not authenticated",
-      sessionID: req.sessionID
-    });
+    // Check if session exists but user isn't loaded
+    if (req.session.passport && req.session.passport.user) {
+      // Attempt to reload user
+      userDb.findById(req.session.passport.user)
+        .then(user => {
+          if (user) {
+            req.user = user;
+            res.status(200).json({
+              success: true,
+              message: "Login successful",
+              user: user,
+              sessionID: req.sessionID
+            });
+          } else {
+            res.status(401).json({
+              success: false,
+              message: "Session exists but user not found",
+              sessionID: req.sessionID
+            });
+          }
+        });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+        sessionID: req.sessionID
+      });
+    }
   }
 });
 
-
 app.use((req, res, next) => {
-  console.log('Session ID:', req.sessionID);
-  console.log('Is Authenticated:', req.isAuthenticated());
-  console.log('User:', req.user);
+  const sessionInfo = {
+    sessionID: req.sessionID,
+    isAuthenticated: req.isAuthenticated(),
+    user: req.user,
+    session: req.session
+  };
+  console.log('Session Debug:', sessionInfo);
   next();
 });
+
 
 app.get('/', (req, res) => {
   res.send("Welcome to the server!");
