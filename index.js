@@ -19,7 +19,7 @@ require('./db/database');
 
 // Middleware
 app.use(cors({
-  origin: "https://musify-client-eta.vercel.app/home",
+  origin: "https://musify-client-eta.vercel.app",
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
