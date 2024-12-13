@@ -36,7 +36,7 @@ app.use(session({
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     sameSite: 'Lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
   },
 
 }));
@@ -99,6 +99,7 @@ app.get("/auth/google/callback", passport.authenticate("google", {
   successRedirect: "https://musify-client-eta.vercel.app/home",
   failureRedirect: "https://musify-client-eta.vercel.app"
 }))
+
 
 
 //Traditional Signup
