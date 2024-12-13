@@ -36,7 +36,7 @@ app.use(session({
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     sameSite: 'Lax',
-    secure: false,
+    secure: process.env.NODE_ENV === 'production',
   },
 
 }));
@@ -96,8 +96,8 @@ passport.deserializeUser(async (id, done) => {
 // initial google ouath login
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
-  successRedirect: "http://localhost:5173/home",
-  failureRedirect: "http://localhost:5173"
+  successRedirect: "https://musify-client-eta.vercel.app/home",
+  failureRedirect: "https://musify-client-eta.vercel.app"
 }))
 
 
@@ -150,7 +150,7 @@ app.post('/login', async (req, res) => {
 app.get('/logout', (req, res, next) => {
   req.logout(function (err) {
     if (err) { return next(err) }
-    res.redirect("http://localhost:5173");
+    res.redirect("https://musify-client-eta.vercel.app");
   })
 })
 
