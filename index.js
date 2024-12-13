@@ -114,6 +114,7 @@ app.get("/auth/google/callback",
   passport.authenticate("google", { session: true }),
   (req, res) => {
     req.session.save(() => {
+      console.log("Session after login:", req.session);
       res.redirect("https://musify-client-eta.vercel.app/home");
     });
   }
@@ -158,8 +159,6 @@ app.post('/login', async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
-
     req.login(user, (err) => {
       console.log("Session after login:", req.session);
       if (err) return res.status(500).json({ message: "Login failed" });
