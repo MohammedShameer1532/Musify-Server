@@ -37,6 +37,7 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     sameSite: 'None',
     secure: true,
+    domain: '.vercel.app',
   },
 
 }));
