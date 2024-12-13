@@ -103,6 +103,15 @@ app.get("/auth/google/callback", passport.authenticate("google", {
   failureRedirect: "https://musify-client-eta.vercel.app"
 }))
 
+app.get("/auth/google/callback", 
+  passport.authenticate("google", { session: true }),
+  (req, res) => {
+    req.session.save(() => {
+      res.redirect("https://musify-client-eta.vercel.app/home");
+    });
+  }
+);
+
 
 
 //Traditional Signup
@@ -160,22 +169,30 @@ app.get('/logout', (req, res, next) => {
 
 
 app.get('/login/success', (req, res) => {
-  if (req.isAuthenticated()) {
+  console.log('Session at login/success:', req.session);
+  console.log('Auth Status:', req.isAuthenticated());
+  
+  if (req.isAuthenticated() && req.user) {
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: req.user
+      user: req.user,
+      sessionID: req.sessionID
     });
   } else {
     res.status(401).json({
       success: false,
-      message: "Not authenticated"
+      message: "Not authenticated",
+      sessionID: req.sessionID
     });
   }
 });
 
+
 app.use((req, res, next) => {
-  console.log("Session Middleware:", req.session);
+  console.log('Session ID:', req.sessionID);
+  console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('User:', req.user);
   next();
 });
 
