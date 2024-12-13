@@ -161,45 +161,28 @@ app.get('/logout', (req, res, next) => {
 })
 
 
+
+
 app.get('/login/success', (req, res) => {
-  if (req.isAuthenticated() && req.user) {
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user: req.user,
-      sessionID: req.sessionID
-    });
-  } else {
-    // Check if session exists but user isn't loaded
-    if (req.session.passport && req.session.passport.user) {
-      // Attempt to reload user
-      userDb.findById(req.session.passport.user)
-        .then(user => {
-          if (user) {
-            req.user = user;
-            res.status(200).json({
-              success: true,
-              message: "Login successful",
-              user: user,
-              sessionID: req.sessionID
-            });
-          } else {
-            res.status(401).json({
-              success: false,
-              message: "Session exists but user not found",
-              sessionID: req.sessionID
-            });
-          }
-        });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: "Not authenticated",
-        sessionID: req.sessionID
-      });
-    }
-  }
-});
+    console.log('Session at login/success:', req.session);
+    console.log('Auth Status:', req.isAuthenticated());
+    
+    if (req.isAuthenticated() && req.user) {
+      res.status(200).json({
+        success: true,
+        message: "Login successful",
+        user: req.user,
+        sessionID: req.sessionID
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Not authenticated",
+        sessionID: req.sessionID
+      });
+    }
+  });
+  
 
 app.use((req, res, next) => {
   const sessionInfo = {
