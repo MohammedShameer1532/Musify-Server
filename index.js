@@ -19,10 +19,12 @@ require('./db/database');
 
 // Middleware
 app.use(cors({
-  origin: "https://musify-client-eta.vercel.app",
+  origin: ["https://musify-client-eta.vercel.app"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(cookieParser())
 
@@ -156,16 +158,20 @@ app.get('/logout', (req, res, next) => {
   })
 })
 
-app.get('/login/success', (req, res, next) => {
-  console.log("Session Data:", req.session);
-  console.log("User Data:", req.user);
-  console.log("Cookies:", req.cookies);
-  if (req.user) {
-    res.status(200).json({ message: "User successfully logged in", user: req.user });
+
+app.get('/login/success', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: req.user
+    });
   } else {
-    res.status(401).json({ message: "Not Authorized" });
+    res.status(401).json({
+      success: false,
+      message: "Not authenticated"
+    });
   }
-  next();
 });
 
 app.use((req, res, next) => {
@@ -176,6 +182,15 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.send("Welcome to the server!");
 });
+
+
+
+const isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: "Not authenticated" });
+};
 
 app.listen(PORT, (req, res) => {
   console.log(`running on port ${PORT}`);
