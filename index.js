@@ -190,7 +190,7 @@ app.get('/logout', (req, res) => {
 
 // Home route
 app.get('/', (req, res) => {
-  res.send("Welcome to the server!");
+  res.send(`Welcome to the server!${req.user}`);
 });
 
 app.listen(PORT, () => {
