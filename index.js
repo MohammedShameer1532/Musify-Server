@@ -18,7 +18,7 @@ require('./db/database');
 
 // Middleware
 app.use(cors({
-  origin: ["https://musify-client-eta.vercel.app"],
+  origin: ["http://localhost:5173"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
@@ -32,10 +32,7 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI, collectionName: "session" }),
   cookie: {
-    httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
-    sameSite: 'Lax',
-    secure: process.env.NODE_ENV === 'production',
   },
 
 }));
@@ -50,7 +47,7 @@ passport.use(
   new oAuth2Strategy({
     clientID: ClientId,
     clientSecret: ClientSecret,
-    callbackURL: "https://musify-server-phi.vercel.app/auth/google/callback",
+    callbackURL: "http://localhost:5000/auth/google/callback",
     scope: ["profile", "email"]
   }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -95,8 +92,8 @@ passport.deserializeUser(async (id, done) => {
 // initial google ouath login
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
-  successRedirect: "https://musify-client-eta.vercel.app/home",
-  failureRedirect: "https://musify-client-eta.vercel.app"
+  successRedirect: "http://localhost:5173/home",
+  failureRedirect: "http://localhost:5173"
 }))
 
 
@@ -118,7 +115,7 @@ app.post('/signup', async (req, res) => {
     req.login(newUser, (err) => {
       console.log(newUser);
       if (err) return res.status(500).json({ message: "Signup failed" });
-      return res.status(201).json({ message: "Signup successful", user: newUser });
+      return res.status(200).json({ message: "Signup successful", user: newUser });
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -146,12 +143,7 @@ app.post('/login', async (req, res) => {
   }
 })
 
-app.get('/logout', (req, res, next) => {
-  req.logout(function (err) {
-    if (err) { return next(err) }
-    res.redirect("https://musify-client-eta.vercel.app");
-  })
-})
+
 
 app.get('/login/success', (req, res, next) => {
   console.log("Session Data:", req.session);
@@ -164,14 +156,15 @@ app.get('/login/success', (req, res, next) => {
   }
 });
 
+app.get('/logout', (req, res, next) => {
+  req.logout(function (err) {
+    if (err) { return next(err) }
+    req.session = null; // Clear the session
+    res.clearCookie('session'); // Clear the actual cookie
+    res.redirect("http://localhost:5173");
+  })
+})
 
-
-app.use((req, res, next) => {
-  console.log('Session ID:', req.sessionID);
-  console.log('Is Authenticated:', req.isAuthenticated());
-  console.log('User:', req.user);
-  next();
-});
 
 app.get('/', (req, res) => {
   res.send("Welcome to the server!");
