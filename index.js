@@ -86,8 +86,8 @@ app.get("/auth/google/callback", passport.authenticate("google", { session: fals
 
   // Send the token and user details back to the client
   res.cookie('token', token, {
-    httpOnly: false,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-    secure: false, // Ensures the cookie is sent over HTTPS in production
+    httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
+    secure: true, // Ensures the cookie is sent over HTTPS in production
     maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
     sameSite: 'Strict',  // Helps prevent CSRF attacks
   });
@@ -113,8 +113,8 @@ app.post('/signup', async (req, res) => {
     const token = generateToken(newUser);
     // Send the token and user details back to the client
     res.cookie('token', token, {
-      httpOnly: false,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-      secure: false, // Ensures the cookie is sent over HTTPS in production
+      httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
+      secure: true, // Ensures the cookie is sent over HTTPS in production
       maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
       sameSite: 'Strict',  // Helps prevent CSRF attacks
     });
@@ -143,8 +143,8 @@ app.post('/login', async (req, res) => {
     const token = generateToken(user);
     // Send the token and user details back to the client
     res.cookie('token', token, {
-      httpOnly: false,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-      secure: false, // Ensures the cookie is sent over HTTPS in production
+      httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
+      secure: true, // Ensures the cookie is sent over HTTPS in production
       maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
       sameSite: 'Strict',  // Helps prevent CSRF attacks
     });
