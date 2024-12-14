@@ -163,6 +163,7 @@ const authenticateJWT = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
+      console.log("Token verification error:", err);
       return res.status(403).json({ message: "Invalid token" });
     }
     req.user = user; // Attach user info to request object
