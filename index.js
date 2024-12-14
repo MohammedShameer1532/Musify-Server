@@ -16,19 +16,14 @@ require('./db/database');
 
 
 
-
 // Middleware
 app.use(cors({
   origin: ["https://musify-client-eta.vercel.app"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-
 app.use(express.json());
 app.use(cookieParser())
-
 
 //setup session
 app.use(session({
@@ -39,19 +34,17 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
-    sameSite: 'None',
-    secure: true,
-    domain: '.vercel.app',
+    sameSite: 'Lax',
+    secure: process.env.NODE_ENV === 'production',
   },
-}));
 
+}));
 
 
 
 //setup passport
 app.use(passport.initialize())
 app.use(passport.session())
-
 
 passport.use(
   new oAuth2Strategy({
@@ -79,11 +72,9 @@ passport.use(
       console.error("Error in OAuth callback:", error);
       return done(error, null)
 
-
     }
   })
 )
-
 
 passport.serializeUser((user, done) => {
   console.log("Serialized User ID:", user._id);
@@ -101,26 +92,12 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
-
 // initial google ouath login
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", {
   successRedirect: "https://musify-client-eta.vercel.app/home",
   failureRedirect: "https://musify-client-eta.vercel.app"
 }))
-
-
-app.get("/auth/google/callback",
-  passport.authenticate("google", { session: true }),
-  (req, res) => {
-    req.session.save(() => {
-      console.log("Session after login:", req.session);
-      res.redirect("https://musify-client-eta.vercel.app/home");
-    });
-  }
-);
-
-
 
 
 //Traditional Signup
@@ -148,7 +125,6 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-
 //Traditional Login
 app.post('/login', async (req, res) => {
   console.log('Request login:', req.body);
@@ -159,6 +135,7 @@ app.post('/login', async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
     req.login(user, (err) => {
       console.log("Session after login:", req.session);
       if (err) return res.status(500).json({ message: "Login failed" });
@@ -169,7 +146,6 @@ app.post('/login', async (req, res) => {
   }
 })
 
-
 app.get('/logout', (req, res, next) => {
   req.logout(function (err) {
     if (err) { return next(err) }
@@ -177,25 +153,14 @@ app.get('/logout', (req, res, next) => {
   })
 })
 
-
-
-app.get('/login/success', (req, res) => {
-  console.log('Session at login/success:', req.session);
-  console.log('Auth Status:', req.isAuthenticated());
-
-  if (req.isAuthenticated() && req.user) {
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      user: req.user,
-      sessionID: req.sessionID
-    });
+app.get('/login/success', (req, res, next) => {
+  console.log("Session Data:", req.session);
+  console.log("User Data:", req.user);
+  console.log("Cookies:", req.cookies);
+  if (req.user) {
+    res.status(200).json({ message: "User successfully logged in", user: req.user });
   } else {
-    res.status(401).json({
-      success: false,
-      message: "Not authenticated",
-      sessionID: req.sessionID
-    });
+    res.status(401).json({ message: "Not Authorized" });
   }
 });
 
@@ -208,25 +173,12 @@ app.use((req, res, next) => {
   next();
 });
 
-
 app.get('/', (req, res) => {
   res.send("Welcome to the server!");
 });
-
-
-
-
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: "Not authenticated" });
-};
-
 
 app.listen(PORT, (req, res) => {
   console.log(`running on port ${PORT}`);
 })
 
-
-module.exports = app;          
+module.exports = app;
