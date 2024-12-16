@@ -44,7 +44,7 @@ passport.use(
   new oAuth2Strategy({
     clientID: ClientId,
     clientSecret: ClientSecret,
-    callbackURL: "http://localhost:5000/auth/google/callback",
+    callbackURL: "https://musify-server-phi.vercel.app/auth/google/callback",
     scope: ["profile", "email"],
   }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -193,13 +193,11 @@ app.get('/login/success', authenticateJWT, (req, res) => {
 
 
 
-
 // Logout - Remove the JWT token from the client
 app.get('/logout', (req, res) => {
   res.clearCookie('token');
   res.status(200).json({ message: "Logged out successfully" });
 });
-
 
 
 // Home route
