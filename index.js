@@ -14,6 +14,8 @@ const ClientSecret = process.env.client_secret;
 const userDb = require('./Model/schema');
 require('./db/database');
 
+
+
 // Middleware
 app.use(cors({
   origin: ["http://localhost:5173"],
@@ -22,6 +24,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+
 
 // Create JWT Token
 const generateToken = (user) => {
@@ -40,7 +44,7 @@ passport.use(
   new oAuth2Strategy({
     clientID: ClientId,
     clientSecret: ClientSecret,
-    callbackURL: "https://musify-server-phi.vercel.app/auth/google/callback",
+    callbackURL: "http://localhost:5000/auth/google/callback",
     scope: ["profile", "email"],
   }, async (accessToken, refreshToken, profile, done) => {
     try {
@@ -61,6 +65,8 @@ passport.use(
   })
 );
 
+
+
 passport.serializeUser((user, done) => {
   done(null, user._id);
 });
@@ -73,56 +79,61 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+
+
+
 // Initial Google OAuth login
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", { session: false }), (req, res) => {
   if (!req.user) {
     return res.status(400).json({ message: "Authentication failed" });
   }
-
   // Generate JWT Token
   const token = generateToken(req.user);
   console.log('Generated token:', token);
-
-  // Send the token and user details back to the client
-  res.cookie('token', token, {
-    httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-    secure: true, // Ensures the cookie is sent over HTTPS in production
-    maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
-    sameSite: 'Strict',  // Helps prevent CSRF attacks
-  });
-  res.redirect(`http://localhost:5173/home`);
+  res.redirect(`http://localhost:5173/home?token=${token}`);
 });
 
 
 
-// Traditional Signup
+
 app.post('/signup', async (req, res) => {
+  console.log('Request Body:', req.body);
   const { name, email, password } = req.body;
+  
   try {
+    // Check if the user already exists
     const existingUser = await userDb.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists!" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password before saving it
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create a new user
     const newUser = new userDb({ name, email, password: hashedPassword });
     await newUser.save();
 
-    // Generate JWT Token
-    const token = generateToken(newUser);
-    // Send the token and user details back to the client
-    res.cookie('token', token, {
-      httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-      secure: true, // Ensures the cookie is sent over HTTPS in production
-      maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
-      sameSite: 'Strict',  // Helps prevent CSRF attacks
+    // Use req.login to establish the session for the user
+    req.login(newUser, (err) => {
+      if (err) {
+        console.error('Error during login:', err);
+        return res.status(500).json({ message: "Signup failed" });
+      }
+
+      // Generate JWT token for the user
+      const token = generateToken(newUser);
+      // Respond with the token and user details
+      return res.status(201).json({ message: "Signup successful", token,   user: { name: newUser.name, email: newUser.email } });
     });
-    res.status(201).json({ message: "Signup successful", token, user: newUser });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error('Error during signup:', error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+
 
 // Traditional Login
 app.post('/login', async (req, res) => {
@@ -132,35 +143,31 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
     // Compare password with hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
     // Generate JWT Token
     const token = generateToken(user);
-    // Send the token and user details back to the client
-    res.cookie('token', token, {
-      httpOnly: true,   // Ensures the cookie can't be accessed via JavaScript (protection against XSS)
-      secure: true, // Ensures the cookie is sent over HTTPS in production
-      maxAge: 24 * 60 * 60 * 1000,  // Token validity (1 day)
-      sameSite: 'Strict',  // Helps prevent CSRF attacks
-    });
-    res.status(200).json({ message: "Login successful", token, user });
+    res.status(200).json({ message: "Login successful", token,   users: { name: user.name, email: user.email }, });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 });
 
+
+
 // Middleware to verify JWT token
 const authenticateJWT = (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: "Access denied, no token provided" });
+  }
+  const token = authHeader.split(' ')[1];
   if (!token) {
     return res.status(401).json({ message: "Access denied, no token provided" });
   }
-
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       console.log("Token verification error:", err);
@@ -171,7 +178,9 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// Example protected route
+
+
+//protected route
 app.get('/login/success', authenticateJWT, (req, res) => {
   console.log("athu", authenticateJWT);
   console.log("req", req.user);
@@ -182,16 +191,23 @@ app.get('/login/success', authenticateJWT, (req, res) => {
   }
 });
 
+
+
+
 // Logout - Remove the JWT token from the client
 app.get('/logout', (req, res) => {
   res.clearCookie('token');
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+
+
 // Home route
 app.get('/', (req, res) => {
   res.send(`Welcome to the server!${req.user}`);
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
