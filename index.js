@@ -202,7 +202,7 @@ app.get('/logout', (req, res) => {
 
 // Home route
 app.get('/', (req, res) => {
-  res.send(`Welcome to the server!${req.user}`);
+  res.send(`Welcome to the server!`);
 });
 
 
