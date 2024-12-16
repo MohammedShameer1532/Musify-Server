@@ -100,33 +100,22 @@ app.get("/auth/google/callback", passport.authenticate("google", { session: fals
 app.post('/signup', async (req, res) => {
   console.log('Request Body:', req.body);
   const { name, email, password } = req.body;
-  
+
   try {
     // Check if the user already exists
     const existingUser = await userDb.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists!" });
     }
-
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
     // Create a new user
     const newUser = new userDb({ name, email, password: hashedPassword });
     await newUser.save();
-
-    // Use req.login to establish the session for the user
-    req.login(newUser, (err) => {
-      if (err) {
-        console.error('Error during login:', err);
-        return res.status(500).json({ message: "Signup failed" });
-      }
-
-      // Generate JWT token for the user
-      const token = generateToken(newUser);
-      // Respond with the token and user details
-      return res.status(201).json({ message: "Signup successful", token,   user: { name: newUser.name, email: newUser.email } });
-    });
+    // Generate JWT token for the user
+    const token = generateToken(newUser);
+    // Respond with the token and user details
+    return res.status(201).json({ message: "Signup successful", token, user: { name: newUser.name, email: newUser.email } });
   } catch (error) {
     console.error('Error during signup:', error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -150,7 +139,7 @@ app.post('/login', async (req, res) => {
     }
     // Generate JWT Token
     const token = generateToken(user);
-    res.status(200).json({ message: "Login successful", token,   users: { name: user.name, email: user.email }, });
+    res.status(200).json({ message: "Login successful", token, users: { name: user.name, email: user.email }, });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
