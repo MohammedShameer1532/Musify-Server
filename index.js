@@ -91,7 +91,7 @@ app.get("/auth/google/callback", passport.authenticate("google", { session: fals
   // Generate JWT Token
   const token = generateToken(req.user);
   console.log('Generated token:', token);
-  res.redirect(`http://localhost:5173/home?token=${token}`);
+  res.redirect(`https://musify-client-eta.vercel.app/home?token=${token}`);
 });
 
 
